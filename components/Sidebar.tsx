@@ -5,10 +5,31 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, TrashIcon } from "@radix-ui/react-icons";
-import TimeAgo from "react-timeago";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 import { useNavigation } from "@/lib/context/navigation";
+
+const UNITS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
+  ["year", 31536000],
+  ["month", 2592000],
+  ["week", 604800],
+  ["day", 86400],
+  ["hour", 3600],
+  ["minute", 60],
+  ["second", 1],
+];
+
+function timeAgo(timestamp: number): string {
+  const seconds = Math.round((timestamp - Date.now()) / 1000);
+  const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+  for (const [unit, sizeInSeconds] of UNITS) {
+    if (Math.abs(seconds) >= sizeInSeconds || unit === "second") {
+      return formatter.format(Math.round(seconds / sizeInSeconds), unit);
+    }
+  }
+  return "just now";
+}
 
 function ChatRow({
   chat,
@@ -59,7 +80,7 @@ function ChatRow({
         </div>
         {lastMessage && (
           <p className="text-xs text-gray-400 mt-1.5 font-medium">
-            <TimeAgo date={lastMessage.createdAt} />
+            {timeAgo(lastMessage.createdAt)}
           </p>
         )}
       </div>
